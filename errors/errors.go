@@ -15,12 +15,56 @@ func Newf(format string, a ...interface{}) error {
 	return fmt.Errorf(format, a...)
 }
 
+type wrappedError struct {
+	msg   string
+	cause error
+}
+
+// Error returns error's text
+func (we *wrappedError) Error() string {
+	return we.msg
+}
+
+// Cause returns error's cause
+func (we *wrappedError) Cause() error {
+	return we.cause
+}
+
+// Cause returns the underlying cause of the error, if possible.
+// An error value has a cause if it implements the following
+// interface:
+//
+//     type causer interface {
+//            Cause() error
+//     }
+//
+// If the error does not implement Cause, the original error will
+// be returned. If the error is nil, nil will be returned without further
+// investigation.
+func Cause(err error) error {
+	type causer interface {
+		Cause() error
+	}
+
+	for err != nil {
+		cause, ok := err.(causer)
+		if !ok {
+			break
+		}
+		err = cause.Cause()
+	}
+	return err
+}
+
 // Wrap wraps error with message if err not nil
 func Wrap(err error, msg string) error {
 	if err == nil {
 		return nil
 	}
-	return std_errors.New(msg + err.Error())
+	return &wrappedError{
+		msg:   msg + err.Error(),
+		cause: err,
+	}
 }
 
 // Wrapf wraps error with formatted message if err not nil
@@ -28,7 +72,10 @@ func Wrapf(err error, format string, a ...interface{}) error {
 	if err == nil {
 		return nil
 	}
-	return std_errors.New(fmt.Sprintf(format, a...) + err.Error())
+	return &wrappedError{
+		msg:   fmt.Sprintf(format, a...) + err.Error(),
+		cause: err,
+	}
 }
 
 // JointError error returned by Join method in case both errors are not nil
