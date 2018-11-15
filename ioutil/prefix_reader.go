@@ -4,13 +4,17 @@ import (
 	"io"
 )
 
-func NewPrefixReader(r io.Reader, prefixLen int) *PrefixReader {
-	return &PrefixReader{
-		r:      r,
-		read:   0,
-		cached: 0,
-		cache:  make([]byte, prefixLen),
+func NewPrefixReader(r io.Reader, prefixLen int) (*PrefixReader, error) {
+	pr := &PrefixReader{
+		cache: make([]byte, prefixLen),
 	}
+
+	var err error
+	if r != nil {
+		err = pr.Reset(r)
+	}
+
+	return pr, err
 }
 
 type PrefixReader struct {
