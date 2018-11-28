@@ -78,7 +78,8 @@ func Wrapf(err error, format string, a ...interface{}) error {
 	}
 }
 
-// JointError error returned by Join method in case both errors are not nil
+// JointError is error returned by Join method in case both errors are not nil.
+// Cause for JointError is ErrOne.
 type JointError struct {
 	ErrOne error
 	ErrTwo error
@@ -95,10 +96,15 @@ func (e *JointError) Error() string {
 	return ""
 }
 
+// Cause returns cause for this error. For JointError cause is ErrOne.
+func (e *JointError) Cause() error {
+	return e.ErrOne
+}
+
 // Join joins two errors in one
 // If both errors are nil - returns nil
 // If only one error not nil returns that error
-// If both not nil returns JointError with both errors
+// If both not nil returns JointError with both errors (cause for JointError is ErrOne)
 // For convinient use in defer func () { err = errors.Join(err, some.Close()) }()
 func Join(err1, err2 error) error {
 	if err1 == nil && err2 == nil {
