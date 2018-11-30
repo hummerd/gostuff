@@ -43,7 +43,7 @@ func WaitSQL(timeout, retryAfter time.Duration, db *sql.DB) error {
 
 		time.Sleep(retryAfter)
 
-		left = left - time.Since(start)
+		left = timeout - time.Since(start)
 		if left < 0 {
 			return errors.Newf("DB is not available")
 		}
@@ -63,7 +63,7 @@ func WaitTCPPort(timeout, retryAfter time.Duration, host, port string) error {
 
 		time.Sleep(retryAfter)
 
-		left = left - time.Since(start)
+		left = timeout - time.Since(start)
 		if left < 0 {
 			return errors.Newf("Servcie %s:%s not available", host, port)
 		}
@@ -86,11 +86,12 @@ func WaitServcies(timeout, retryAfter time.Duration, services ...string) error {
 		if h == "" || p == "" {
 			return errors.New("Can not parse service connection string: " + s)
 		}
+
 		err := WaitTCPPort(left, retryAfter, h, p)
 		if err != nil {
 			return err
 		}
-		left = left - time.Since(start)
+		left = timeout - time.Since(start)
 	}
 
 	return nil
