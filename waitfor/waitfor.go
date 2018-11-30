@@ -35,9 +35,8 @@ func WaitSQL(timeout, retryAfter time.Duration, db *sql.DB) error {
 	defer cancel()
 
 	for {
-		i := 0
-		_ = db.QueryRowContext(ctx, "SELECT 1").Scan(&i)
-		if i != 0 {
+		err := db.PingContext(ctx)
+		if err == nil {
 			return nil
 		}
 
@@ -45,7 +44,7 @@ func WaitSQL(timeout, retryAfter time.Duration, db *sql.DB) error {
 
 		left = timeout - time.Since(start)
 		if left < 0 {
-			return errors.Newf("DB is not available")
+			return errors.Wrap(err, "DB is not available: ")
 		}
 	}
 }
@@ -55,7 +54,7 @@ func WaitTCPPort(timeout, retryAfter time.Duration, host, port string) error {
 	start := time.Now()
 	left := timeout
 	for {
-		conn, _ := net.DialTimeout("tcp", host+":"+port, left)
+		conn, err := net.DialTimeout("tcp", host+":"+port, left)
 		if conn != nil {
 			_ = conn.Close()
 			return nil
@@ -65,7 +64,7 @@ func WaitTCPPort(timeout, retryAfter time.Duration, host, port string) error {
 
 		left = timeout - time.Since(start)
 		if left < 0 {
-			return errors.Newf("Servcie %s:%s not available", host, port)
+			return errors.Wrapf(err, "Servcie %s:%s not available", host, port)
 		}
 	}
 }
