@@ -1,6 +1,8 @@
 package waitfor
 
 import (
+	"context"
+	"database/sql"
 	"net"
 	"regexp"
 	"time"
@@ -26,6 +28,28 @@ var (
 	}
 )
 
+func WaitSQL(timeout, retryAfter time.Duration, db *sql.DB) error {
+	start := time.Now()
+	left := timeout
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	for {
+		i := 0
+		_ = db.QueryRowContext(ctx, "SELECT 1").Scan(&i)
+		if i != 0 {
+			return nil
+		}
+
+		time.Sleep(retryAfter)
+
+		left = left - time.Since(start)
+		if left < 0 {
+			return errors.Newf("DB is not available")
+		}
+	}
+}
+
 // WaitTCPPort wait while it can connect to specified tcp port
 func WaitTCPPort(timeout, retryAfter time.Duration, host, port string) error {
 	start := time.Now()
@@ -34,7 +58,7 @@ func WaitTCPPort(timeout, retryAfter time.Duration, host, port string) error {
 		conn, _ := net.DialTimeout("tcp", host+":"+port, left)
 		if conn != nil {
 			_ = conn.Close()
-			break
+			return nil
 		}
 
 		time.Sleep(retryAfter)
@@ -44,8 +68,6 @@ func WaitTCPPort(timeout, retryAfter time.Duration, host, port string) error {
 			return errors.Newf("Servcie %s:%s not available", host, port)
 		}
 	}
-
-	return nil
 }
 
 // WaitServcies waits for all specified services to be available.
