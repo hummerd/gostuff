@@ -135,7 +135,7 @@ func TestWaitServices(t *testing.T) {
 	addrPartsTwo := strings.Split(ltwo.Addr().String(), ":")
 	defer ltwo.Close()
 
-	err = WaitServcies(
+	err = WaitServices(
 		time.Second, time.Millisecond*100,
 		"localhost:"+addrPartsOne[1],
 		"host=localhost port="+addrPartsTwo[1])

@@ -69,7 +69,7 @@ func WaitTCPPort(timeout, retryAfter time.Duration, host, port string) error {
 	}
 }
 
-// WaitServcies waits for all specified services to be available.
+// WaitServices waits for all specified services to be available.
 // Service can be specified in one of the following forms:
 //	 scheme://user@host:port/some
 //   scheme://host:port/some
@@ -77,7 +77,7 @@ func WaitTCPPort(timeout, retryAfter time.Duration, host, port string) error {
 //   user:password@network(host:port)/path?etc
 //   host=host port=port
 //   port=port host=host
-func WaitServcies(timeout, retryAfter time.Duration, services ...string) error {
+func WaitServices(timeout, retryAfter time.Duration, services ...string) error {
 	start := time.Now()
 	left := timeout
 	for _, s := range services {

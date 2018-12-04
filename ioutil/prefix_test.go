@@ -7,13 +7,16 @@ import (
 )
 
 func TestCachedReaderLess(t *testing.T) {
-	cr := NewPrefixReader(nil, 10)
+	cr, err := NewPrefixReader(nil, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	data := &bytes.Buffer{}
 	s := "123456789012345678901234567890"
 	data.WriteString(s)
 
-	err := cr.Reset(data)
+	err = cr.Reset(data)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,14 +53,17 @@ func TestCachedReaderLess(t *testing.T) {
 }
 
 func TestCachedReader_WriterTo(t *testing.T) {
-	cr := NewPrefixReader(nil, 10)
+	cr, err := NewPrefixReader(nil, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	var wt io.WriterTo = cr
 	t.Log("WriterTo to implemented", wt)
 
 	s := "123456789012345678901234567890"
 	data := bytes.NewBufferString(s)
-	err := cr.Reset(data)
+	err = cr.Reset(data)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +122,10 @@ func TestCachedReader_WriterTo(t *testing.T) {
 }
 
 func TestCachedReaderMore(t *testing.T) {
-	cr := NewPrefixReader(nil, 100)
+	cr, err := NewPrefixReader(nil, 100)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	data := &bytes.Buffer{}
 	s := "123456789012345678901234567890"
