@@ -2,7 +2,12 @@ package ioutil
 
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -315,5 +320,32 @@ func TestCachedWriter_ReaderFrom(t *testing.T) {
 
 	if buff.String() != s {
 		t.Fatal("Wrong data ", buff.String(), s)
+	}
+}
+
+func TestReadHttp(t *testing.T) {
+	s := strings.Repeat("0123456789", 60)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, s)
+	}))
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cr, err := NewPrefixReader(res.Body, 1024)
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+
+	d, err := ioutil.ReadAll(cr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(d) != s {
+		t.Fatal("Read all failed", string(d), len(d))
 	}
 }

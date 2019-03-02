@@ -45,6 +45,9 @@ func (cr *PrefixReader) Read(p []byte) (int, error) {
 	if l > 0 {
 		c = copy(p, cr.cache[cr.read:cr.cached])
 		cr.read += c
+		if c == len(p) {
+			return c, nil
+		}
 	}
 
 	n, err := cr.r.Read(p[c:])
